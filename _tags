@@ -1,0 +1,7 @@
+true : bin_annot, safe_string, warn(-40), package(bytes ocplib-json-typed ptime)
+
+<src> : include
+<test> : include
+
+<src/telegram_async.*>: thread, package(yojson cohttp.async)
+<src/test_bot.*>: thread, package(yojson cohttp.async)

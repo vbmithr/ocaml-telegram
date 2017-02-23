@@ -1,0 +1,6 @@
+PKG bytes yojson ocplib-json-typed ptime
+PKG cohttp.async
+FLG -w -40
+S src
+S test
+B _build/**

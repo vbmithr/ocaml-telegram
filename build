@@ -1,0 +1,27 @@
+#!/bin/sh
+# This script is only used for developement. It is removed by the
+# distribution process.
+
+set -e
+
+OCAMLBUILD=${OCAMLBUILD:="ocamlbuild -use-ocamlfind -classic-display \
+                                     -tag debug"}
+
+action ()
+{
+    case $1 in
+        default)    action lib-native ;;
+        lib-byte)   $OCAMLBUILD telegram.cma telegram_async.cma test_bot.byte ;;
+        lib-native) $OCAMLBUILD telegram.cmxa telegram_async.cmxa test_bot.native ;;
+        test-bot)   $OCAMLBUILD test_bot.native ;;
+        test|tests) $OCAMLBUILD test/tests.otarget ;;
+        doc)        shift; topkg doc --dev $* ;;
+        api-doc)    shift; topkg doc $* ;;
+        clean)      $OCAMLBUILD -clean ;;
+        *)          $OCAMLBUILD $* ;;
+    esac
+}
+
+if [ $# -eq 0 ];
+then action default ;
+else action $*; fi
