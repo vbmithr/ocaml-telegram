@@ -172,6 +172,22 @@ module Message : sig
   }
 
   val encoding : t Json_encoding.encoding
+
+  module Send : sig
+    type parse_mode = Markdown | Html
+
+    type t = {
+      chat_id : int ;
+      text : string ;
+      parse_mode : parse_mode option ;
+      disable_web_page_preview : bool ;
+      disable_notification : bool ;
+      reply_to_message_id : int ;
+      reply_markup : Json_repr.ezjsonm option ;
+    }
+
+    val encoding : t Json_encoding.encoding
+  end
 end
 
 module InlineQuery : sig

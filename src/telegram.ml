@@ -422,6 +422,58 @@ module Message = struct
           migrate_to_chat_id ; migrate_from_chat_id ;
           pinned_msg ; })
       obj
+
+  module Send = struct
+    type parse_mode = Markdown | Html
+
+    let parse_mode_to_string = function
+    | Markdown -> "Markdown"
+    | Html -> "HTML"
+
+    let parse_mode_of_string = function
+    | "Markdown" -> Some Markdown
+    | "HTML" -> Some Html
+    | _ -> None
+
+    let parse_mode_encoding =
+      let open Json_encoding in
+      conv
+        parse_mode_to_string
+        (fun s -> match parse_mode_of_string s with
+          | Some pm -> pm
+          | None -> invalid_arg "parse_mode_encoding")
+        string
+
+    type t = {
+      chat_id : int ;
+      text : string ;
+      parse_mode : parse_mode option ;
+      disable_web_page_preview : bool ;
+      disable_notification : bool ;
+      reply_to_message_id : int ;
+      reply_markup : Json_repr.ezjsonm option ;
+    }
+
+    let encoding =
+      let open Json_encoding in
+      conv
+        (fun { chat_id ; text ; parse_mode ; disable_web_page_preview ;
+               disable_notification ; reply_to_message_id ; reply_markup } ->
+          (chat_id, text, parse_mode, disable_web_page_preview,
+           disable_notification, reply_to_message_id, reply_markup))
+        (fun (chat_id, text, parse_mode, disable_web_page_preview,
+              disable_notification, reply_to_message_id, reply_markup) ->
+          { chat_id ; text ; parse_mode ; disable_web_page_preview ;
+            disable_notification ; reply_to_message_id ; reply_markup })
+        (obj7
+           (req "chat_id" int63_encoding)
+           (req "text" string)
+           (opt "parse_mode" parse_mode_encoding)
+           (dft "disable_web_page_preview" bool false)
+           (dft "disable_notification" bool false)
+           (dft "reply_to_message_id" int 0)
+           (opt "reply_markup" any_ezjson_value))
+  end
 end
 
 module InlineQuery = struct
