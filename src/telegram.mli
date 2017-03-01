@@ -50,18 +50,16 @@ module Entity : sig
     | Italic
     | Code
     | Pre
-    | Text_link
-    | Text_mention
-
-  val kind_encoding : kind Json_encoding.encoding
+    | Text_link of Uri.t
+    | Text_mention of User.t
 
   type t = {
     kind : kind ;
     offset : int ;
     length : int ;
-    url : Uri.t ;
-    user : User.t option ;
   }
+
+  val extract : text:string -> t list -> (kind * string) list
 
   val encoding : t Json_encoding.encoding
 end
@@ -185,6 +183,15 @@ module Message : sig
       reply_to_message_id : int ;
       reply_markup : Json_repr.ezjsonm option ;
     }
+
+    val create :
+      ?parse_mode:parse_mode ->
+      ?disable_web_page_preview:bool ->
+      ?disable_notification:bool ->
+      ?reply_to_message_id:int ->
+      ?reply_markup:Json_repr.ezjsonm ->
+      chat_id:int ->
+      text:string -> unit -> t
 
     val encoding : t Json_encoding.encoding
   end

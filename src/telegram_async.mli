@@ -11,10 +11,26 @@ module Json : sig
     schema:Json_schema.schema -> 't Json_encoding.encoding
 end
 
-exception TelegramError of int * string
+type rpc_error = {
+  code : int ;
+  message : string ;
+}
 
-val set_token : string -> unit
-val getMe : unit -> User.t Deferred.t
+val init : user_agent:string -> token:string -> unit
+
+val getMe : unit -> (User.t, rpc_error) Result.t Deferred.t
+
+val sendMessage :
+  ?log:Log.t ->
+  ?buf:Bi_outbuf.t ->
+  ?parse_mode:Message.Send.parse_mode ->
+  ?disable_web_page_preview:bool ->
+  ?disable_notification:bool ->
+  ?reply_to_message_id:int ->
+  ?reply_markup:Json_repr.ezjsonm ->
+  chat_id:int ->
+  text:string -> unit -> (Message.t, rpc_error) Result.t Deferred.t
+
 val getUpdates :
   ?log:Log.t ->
   ?buf:Bi_outbuf.t ->

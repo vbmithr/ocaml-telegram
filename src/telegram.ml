@@ -96,6 +96,37 @@ module Chat = struct
 end
 
 module Entity = struct
+  module Kind = struct
+    type t =
+      | Mention
+      | Hashtag
+      | Bot_command
+      | Url
+      | Email
+      | Bold
+      | Italic
+      | Code
+      | Pre
+      | Text_link
+      | Text_mention
+
+    let encoding =
+      let open Json_encoding in
+      string_enum [
+        "mention", Mention ;
+        "hashtag", Hashtag ;
+        "bot_command", Bot_command ;
+        "url", Url ;
+        "email", Email ;
+        "bold", Bold ;
+        "italic", Italic ;
+        "code", Code ;
+        "pre", Pre ;
+        "text_link", Text_link ;
+        "text_mention", Text_mention ;
+      ]
+  end
+
   type kind =
     | Mention
     | Hashtag
@@ -106,45 +137,69 @@ module Entity = struct
     | Italic
     | Code
     | Pre
-    | Text_link
-    | Text_mention
+    | Text_link of Uri.t
+    | Text_mention of User.t
 
-  let kind_encoding =
-    let open Json_encoding in
-    string_enum [
-      "mention", Mention ;
-      "hashtag", Hashtag ;
-      "bot_command", Bot_command ;
-      "url", Url ;
-      "email", Email ;
-      "bold", Bold ;
-      "italic", Italic ;
-      "code", Code ;
-      "pre", Pre ;
-      "text_link", Text_link ;
-      "text_mention", Text_mention ;
-    ]
+  let enum_kind_of_kind = function
+  | Mention -> Kind.Mention
+  | Hashtag -> Hashtag
+  | Bot_command -> Bot_command
+  | Url -> Url
+  | Email -> Email
+  | Bold -> Bold
+  | Italic -> Italic
+  | Code -> Code
+  | Pre -> Pre
+  | Text_link _ -> Text_link
+  | Text_mention _ -> Text_mention
+
+  let kind_of_enum_kind = function
+  | Kind.Mention -> Mention
+  | Hashtag -> Hashtag
+  | Bot_command -> Bot_command
+  | Url -> Url
+  | Email -> Email
+  | Bold -> Bold
+  | Italic -> Italic
+  | Code -> Code
+  | Pre -> Pre
+  | _ -> invalid_arg "kind_of_enum_kind"
+
+  let text_link uri = Text_link uri
+  let text_mention user = Text_mention user
 
   type t = {
     kind : kind ;
     offset : int ;
     length : int ;
-    url : Uri.t ;
-    user : User.t option ;
   }
+
+  let extract ~text entities =
+    ListLabels.map entities ~f:begin fun { kind ; offset ; length } ->
+      kind, String.sub text offset length
+    end
 
   let encoding =
     let open Json_encoding in
     conv
-      (fun { kind ; offset ; length ; url ; user } ->
-         (kind, offset, length, url, user))
-      (fun (kind, offset, length, url, user) ->
-         { kind ; offset ; length ; url ; user })
+      (fun { kind ; offset ; length } ->
+         let url, user = match kind with
+         | Text_link url -> Some url, None
+         | Text_mention user -> None, Some user
+         | _ -> None, None in
+         let enum_kind = enum_kind_of_kind kind in
+         (enum_kind, offset, length, url, user))
+      (fun (enum_kind, offset, length, url, user) ->
+         let kind = match enum_kind with
+         | Text_link -> text_link (Option.value_exn url)
+         | Text_mention -> text_mention (Option.value_exn user)
+         | enum_kind -> kind_of_enum_kind enum_kind in
+         { kind ; offset ; length })
       (obj5
-         (req "type" kind_encoding)
+         (req "type" Kind.encoding)
          (req "offset" int)
          (req "length" int)
-         (dft "url" uri_encoding Uri.empty)
+         (opt "url" uri_encoding)
          (opt "user" User.encoding))
 end
 
@@ -453,6 +508,12 @@ module Message = struct
       reply_to_message_id : int ;
       reply_markup : Json_repr.ezjsonm option ;
     }
+
+    let create ?parse_mode ?(disable_web_page_preview=false)
+        ?(disable_notification=false) ?(reply_to_message_id=0)
+        ?reply_markup ~chat_id ~text () =
+      { chat_id ; text ; parse_mode ; disable_web_page_preview ;
+        disable_notification ; reply_to_message_id ; reply_markup }
 
     let encoding =
       let open Json_encoding in
