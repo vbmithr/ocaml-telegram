@@ -1,0 +1,5 @@
+(library
+ ((name telegram)
+  (public_name telegram)
+  ; (modules (sha1 websocket))
+  (libraries (ocplib-json-typed ptime))))

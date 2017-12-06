@@ -1,0 +1,6 @@
+(library
+ ((name telegram_async)
+  (public_name telegram-async)
+  ; (modules websocket_async)
+  (optional)
+  (libraries (telegram cohttp-async yojson))))

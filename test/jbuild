@@ -1,0 +1,3 @@
+(executable
+ ((name test_bot)
+  (libraries (telegram-async))))
