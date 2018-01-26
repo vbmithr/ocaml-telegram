@@ -3,23 +3,14 @@ name: "telegram"
 version: "1.0"
 maintainer: "Vincent Bernardoff <vb@luminar.eu.org>"
 authors: ["Vincent Bernardoff <vb@luminar.eu.org>"]
-homepage: "https://github.com/vbmithr/telegram"
-doc: "https://vbmithr.github.io/telegram/doc"
+homepage: "https://github.com/vbmithr/ocaml-telegram"
 license: "ISC"
-dev-repo: "https://github.com/vbmithr/telegram.git"
-bug-reports: "https://github.com/vbmithr/telegram/issues"
+dev-repo: "https://github.com/ocaml-vbmithr/telegram.git"
+bug-reports: "https://github.com/vbmithr/ocaml-telegram/issues"
 tags: []
-available: [ ocaml-version >= "4.01.0"]
+available: [ ocaml-version >= "4.03.0"]
 depends: [
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
-  "topkg" {build}
-  "ocplib-json-typed"
+  "jbuilder" {build & >= "1.0+beta16"}
+  "ocplib-json-typed" {>= "0.5"}
 ]
-depopts: [
-  "cohttp"
-  "async_ssl"
-]
-build:
-[[ "ocaml" "pkg/pkg.ml" "build"
-           "--pinned" "%{pinned}%" ]]
+build: [ "jbuilder" "build" "-j" jobs "-p" name "@install" ]
