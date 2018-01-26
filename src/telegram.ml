@@ -44,20 +44,22 @@ module User = struct
     first : string ;
     last : string ;
     username : string ;
+    is_bot : bool ;
   }
 
   let encoding =
     let open Json_encoding in
     conv
-      (fun { id ; first ; last ; username } ->
-         (id, first, last, username))
-      (fun (id, first, last, username) ->
-         { id ; first ; last ; username })
-      (obj4
+      (fun { id ; first ; last ; username ; is_bot } ->
+         (id, first, last, username, is_bot))
+      (fun (id, first, last, username, is_bot) ->
+         { id ; first ; last ; username ; is_bot })
+      (obj5
          (req "id" int)
          (req "first_name" string)
          (dft "last_name" string "")
-         (dft "username" string ""))
+         (dft "username" string "")
+         (req "is_bot" bool))
 end
 
 module Chat = struct
@@ -612,10 +614,10 @@ module Update = struct
       offset : int option ;
       limit : int ;
       timeout : int ;
-      kinds : kind list option ;
+      kinds : kind list ;
     }
 
-    let create ?offset ?(limit=100) ?(timeout=0) ?kinds () =
+    let create ?offset ?(limit=100) ?(timeout=0) ?(kinds=[]) () =
       { offset ; limit ; timeout ; kinds }
 
     let encoding =
@@ -629,7 +631,7 @@ module Update = struct
            (opt "offset" int)
            (dft "limit" int 100)
            (dft "timeout" int 0)
-           (opt "kinds" (list kind_encoding)))
+           (dft "kinds" (list kind_encoding) []))
   end
 
   type update =

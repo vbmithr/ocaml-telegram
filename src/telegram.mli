@@ -16,6 +16,7 @@ module User : sig
     first : string ;
     last : string ;
     username : string ;
+    is_bot : bool ;
   }
 
   val encoding : t Json_encoding.encoding
@@ -238,7 +239,7 @@ module Update : sig
       offset : int option ;
       limit : int ;
       timeout : int ;
-      kinds : kind list option ;
+      kinds : kind list ;
     }
 
     val encoding : t Json_encoding.encoding
